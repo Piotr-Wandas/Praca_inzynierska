@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-financial_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-fp_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/create_database.sql:/docker-entrypoint-initdb.d/001-create_database.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fp_app} -d ${POSTGRES_DB:-financial_platform}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.22.0
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:////mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflowdata:/mlflow
+
+  prefect:
+    image: prefecthq/prefect:3-latest
+    command: prefect server start --host 0.0.0.0
+    ports:
+      - "4200:4200"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-fp_app}:${POSTGRES_PASSWORD:-change_me}@postgres:5432/${POSTGRES_DB:-financial_platform}
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      DATA_START_YEAR: ${DATA_START_YEAR:-2018}
+      STOOQ_API_KEY: ${STOOQ_API_KEY:-}
+      GUS_CLIENT_ID: ${GUS_CLIENT_ID:-}
+      MODEL_ARTIFACT_DIR: /app/artifacts/models
+    volumes:
+      - modeldata:/app/artifacts
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: apps/web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      INTERNAL_API_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  mlflowdata:
+  modeldata:

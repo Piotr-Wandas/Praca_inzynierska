@@ -1,0 +1,7 @@
+stages:
+  demo_train:
+    cmd: python -m financial_platform.modeling.demo_pipeline
+    deps:
+      - data/demo/panel_demo.csv
+      - src/financial_platform/modeling
+      - src/financial_platform/datasets

@@ -1,0 +1,7 @@
+research:
+  market: WIG20
+  horizon: t+1_quarter
+  candidate_period: 2018Q1-2025Q4
+modeling:
+  primary_target: net_income
+  validation: walk_forward

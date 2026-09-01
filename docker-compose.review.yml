@@ -1,0 +1,19 @@
+services:
+  postgres:
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/create_database.sql:/docker-entrypoint-initdb.d/001-create_database.sql:ro
+      - ./review/database/900-review-data.sql:/docker-entrypoint-initdb.d/900-review-data.sql:ro
+
+  api:
+    environment:
+      APP_MODE: review
+      REVIEW_METADATA_PATH: /app/review/metadata/snapshot.json
+    volumes:
+      - ./review/artifacts:/app/artifacts:ro
+
+  web:
+    environment:
+      NEXT_PUBLIC_APP_MODE: review
+      INTERNAL_API_URL: http://api:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
