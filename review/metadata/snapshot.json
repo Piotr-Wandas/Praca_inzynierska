@@ -1,0 +1,7 @@
+{
+  "prepared": false,
+  "release": "v6.0 REVIEW RELEASE",
+  "dataset_version": null,
+  "created_at": null,
+  "note": "Uruchom PREPARE_REVIEW_SNAPSHOT.bat na komputerze z uzupelniona baza i wynikami treningu."
+}

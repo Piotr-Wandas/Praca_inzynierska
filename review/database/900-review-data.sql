@@ -1,0 +1,3 @@
+-- REVIEW SNAPSHOT PLACEHOLDER
+-- Ten plik zostanie zastąpiony przez PREPARE_REVIEW_SNAPSHOT.bat.
+-- Nie przekazuj prowadzącemu paczki z tym placeholderem.
