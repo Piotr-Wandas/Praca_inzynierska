@@ -1,0 +1,51 @@
+[
+  {
+    "target": "net_income",
+    "n_obs_per_model": 124,
+    "companies": [
+      "CDR",
+      "DNP",
+      "ORL",
+      "PEO",
+      "PKO"
+    ],
+    "folds": 25,
+    "target_from": "2020-06-30",
+    "target_to": "2026-06-30",
+    "cutoff_after_target_end": 124,
+    "metrics_match": true,
+    "same_keys": true,
+    "sha256": "615ea7f616e3d40174a5166143b90b5b4a83d502ffb8d3c9890ba2cc62527748"
+  },
+  {
+    "target": "revenue",
+    "n_obs_per_model": 74,
+    "companies": [
+      "CDR",
+      "DNP",
+      "ORL"
+    ],
+    "folds": 25,
+    "target_from": "2020-06-30",
+    "target_to": "2026-06-30",
+    "cutoff_after_target_end": 74,
+    "metrics_match": true,
+    "same_keys": true,
+    "sha256": "90ee72cbccfc4fba03a7e6d070883c74e695db1b22b19ebd754b8fc840032810"
+  },
+  {
+    "target": "net_interest_income",
+    "n_obs_per_model": 50,
+    "companies": [
+      "PEO",
+      "PKO"
+    ],
+    "folds": 25,
+    "target_from": "2020-06-30",
+    "target_to": "2026-06-30",
+    "cutoff_after_target_end": 50,
+    "metrics_match": true,
+    "same_keys": true,
+    "sha256": "e6528660e9ab826bb10983e79c74543e83696e977411cf59b2c78941e188b246"
+  }
+]

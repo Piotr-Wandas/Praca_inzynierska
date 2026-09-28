@@ -1,0 +1,82 @@
+[
+  {
+    "source": "sql/create_database.sql",
+    "copy": "01_baza_danych/01_create_database.sql",
+    "sha256": "c7adc9b7f2fd0d5bedfec34e7486379b7047ac426660b95dbe3ac4e23eae1012"
+  },
+  {
+    "source": "sql/views/analytics_views.sql",
+    "copy": "01_baza_danych/02_analytics_views.sql",
+    "sha256": "481558cdc961b858221fb80749fa8f8804f3d37f59b208f40eeb1c9acfc46ba2"
+  },
+  {
+    "source": "sql/diagnostics/quality_checks.sql",
+    "copy": "01_baza_danych/03_quality_checks_oryginal.sql",
+    "sha256": "639627c3e9b791fcbaf116a89f6603ba2a51ba3828c320d369690badae3c3be6"
+  },
+  {
+    "source": "src/financial_platform/services/model_dataset.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/services/model_dataset.py",
+    "sha256": "429f31ed05b14448e789d9e5017744c55a6c609e10fc733c7e8a51ee51fdbc4a"
+  },
+  {
+    "source": "src/financial_platform/services/train_from_db.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/services/train_from_db.py",
+    "sha256": "2c3abc8b0d0a07fa10e62e396e82a5ac524400aa8e132d86d6cddbc36a6ac01f"
+  },
+  {
+    "source": "src/financial_platform/services/data_quality.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/services/data_quality.py",
+    "sha256": "d564fa48e3347add98935a6b83dc5af95c1538b2abc936a607367d38a8ef5d62"
+  },
+  {
+    "source": "src/financial_platform/services/internet_ingestion.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/services/internet_ingestion.py",
+    "sha256": "a4099e44997736f5be35aaf75db08fc7b77ce6e3b7b04f9c18460add854170f2"
+  },
+  {
+    "source": "src/financial_platform/modeling/model_factory.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/modeling/model_factory.py",
+    "sha256": "2399c1273ecf284eb7f392757a96d7bea86cec36f8a1e7bb2c32a7dc28853558"
+  },
+  {
+    "source": "src/financial_platform/modeling/common_evaluation.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/modeling/common_evaluation.py",
+    "sha256": "f0c14927ec9b044c2d1670d239933e8644a97d3fc6f95cab06ddad74c4c11baf"
+  },
+  {
+    "source": "src/financial_platform/modeling/feature_selection.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/modeling/feature_selection.py",
+    "sha256": "342191e5298e91ae87109c25fc72556b2fcfe5e61bc27be05cb2266f8b5e2fc1"
+  },
+  {
+    "source": "src/financial_platform/modeling/feature_registry.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/modeling/feature_registry.py",
+    "sha256": "279853be3de812785ccfbeb5b792810c48354d3877e39f34ac2ed77bada545fa"
+  },
+  {
+    "source": "src/financial_platform/modeling/experiment_runner.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/modeling/experiment_runner.py",
+    "sha256": "91b746d23064051c991c36078e2492df66b83b767e7207604a43e509e32c27f3"
+  },
+  {
+    "source": "src/financial_platform/evaluation/metrics.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/evaluation/metrics.py",
+    "sha256": "8233c261795943494af8ff30f230e55cdb59bf251bef940f4edf928ae8915ba8"
+  },
+  {
+    "source": "src/financial_platform/datasets/point_in_time.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/datasets/point_in_time.py",
+    "sha256": "60723a31ed261e0b7b4f987cdfbb8d7a4607987749d31fe1db74c2c28d8407d5"
+  },
+  {
+    "source": "src/financial_platform/datasets/panel_builder.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/datasets/panel_builder.py",
+    "sha256": "b144265f62679058d7f4a28d389e1f6ba085ec9f51f8610dc114a08e2973c8bd"
+  },
+  {
+    "source": "src/financial_platform/features/feature_builder.py",
+    "copy": "02_analiza_danych/kod_zrodlowy/features/feature_builder.py",
+    "sha256": "1d782852f5a25c7c02361d4f7572e4af2d78549a8dbdd9de0e80ca2a954df06d"
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "python": "3.12.14",
+  "packages": {
+    "pytest": "8.4.2",
+    "pandas": "2.2.3",
+    "numpy": "2.3.5",
+    "scikit-learn": "1.8.0",
+    "sqlalchemy": "2.0.52",
+    "ruff": "0.16.7",
+    "pglast": "8.4"
+  }
+}

@@ -1,0 +1,14 @@
+kolumna,niepuste,braki_proc
+ticker,64,0.0
+sector,64,0.0
+period_index,64,0.0
+period_end,64,0.0
+cutoff_at,64,0.0
+fundamental_available_at,64,0.0
+market_available_at,64,0.0
+macro_available_at,64,0.0
+net_income_lag1,60,6.25
+net_income_lag4,48,25.0
+return_60d,64,0.0
+fx_eurpln,64,0.0
+target_net_income,64,0.0
