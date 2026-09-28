@@ -1,0 +1,8 @@
+{
+  "data_kind": "demo",
+  "rows": 64,
+  "companies": 4,
+  "duplicate_keys": 0,
+  "sha256": "60789d05dec3f00179c2e1c98fa71218e0090b131a4b3121740147d4bb772e90",
+  "warning": "Statystyki opisowe nie potwierdzają poprawności point-in-time ani prognoz."
+}

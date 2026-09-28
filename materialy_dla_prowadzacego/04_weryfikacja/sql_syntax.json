@@ -1,0 +1,22 @@
+[
+  {
+    "plik": "02_analytics_views.sql",
+    "statements": 4,
+    "wykonano_na_serwerze": false
+  },
+  {
+    "plik": "03_quality_checks_oryginal.sql",
+    "statements": 4,
+    "wykonano_na_serwerze": false
+  },
+  {
+    "plik": "04_kontrole_do_pracy.sql",
+    "statements": 7,
+    "wykonano_na_serwerze": false
+  },
+  {
+    "plik": "01_create_database.sql",
+    "statements": 45,
+    "wykonano_na_serwerze": false
+  }
+]

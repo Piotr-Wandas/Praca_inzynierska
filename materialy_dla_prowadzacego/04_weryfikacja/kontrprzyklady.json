@@ -1,0 +1,17 @@
+{
+  "baseline": {
+    "target": 106.0,
+    "kod_lag1": 104.0,
+    "ostatni_wynik_t": 105.0,
+    "kod_lag4": 101.0,
+    "sezonowy_dla_t_plus_1": 102.0
+  },
+  "luka": {
+    "period_end": "2019-06-30",
+    "target_period_end": "2019-12-31"
+  },
+  "etykiety": {
+    "pozniejsze_w_treningu": 16
+  },
+  "asof_latest": "left keys must be sorted"
+}

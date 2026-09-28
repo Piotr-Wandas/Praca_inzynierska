@@ -1,29 +1,40 @@
-# Financial Prediction — v6.0.1 REVIEW RELEASE
+# Materiały po przeglądzie pracy
+
+Skrypty SQL, kod analizy i raport przeglądu są w [materialy_dla_prowadzacego](materialy_dla_prowadzacego/README.md).
+Przed prezentacją uzupełnij snapshot REVIEW — dostarczona wersja nie zawiera gotowego eksportu bazy.
+
+# Financial Prediction — v6.1 INTERACTIVE ANALYTICS REVIEW
 
 ## Dla prowadzącego
 
 1. Zainstaluj i uruchom Docker Desktop.
-2. Rozpakuj całą paczkę do zwykłego katalogu na dysku.
+2. Rozpakuj całą paczkę.
 3. Uruchom **START_REVIEW.bat**.
-4. Po pozytywnej kontroli system automatycznie otworzy stronę **http://localhost:3000/review**.
+4. Po kontroli system automatycznie otworzy **http://localhost:3000/review**.
 
-Przy pierwszym uruchomieniu Docker może potrzebować kilku minut na zbudowanie/pobranie obrazów. Nie jest wymagane pobieranie danych finansowych z internetu ani ponowne trenowanie modeli — paczka FINAL REVIEW zawiera zamrożony snapshot bazy oraz zapisane wyniki eksperymentów.
+Snapshot REVIEW zawiera zamrożone dane i wyniki treningów, dlatego podczas oceny nie jest wymagane ponowne pobieranie danych ani trenowanie modeli.
 
 ### Najważniejsze ekrany
 
-- `/review` — stan wersji badawczej i informacje o snapshotcie,
-- `/data` — jakość i przygotowanie danych,
-- `/data-browser` — filtrowanie, sortowanie i podgląd rekordów,
-- `/models` — porównanie modeli,
-- `/dashboard` — zbiorczy dashboard analityczny,
+- `/review` — ścieżka prezentacji i metadane snapshotu,
+- `/data` — przygotowanie i jakość danych,
+- `/data-browser` — filtrowanie, sortowanie i podgląd konkretnych rekordów,
+- `/analytics` — **interaktywny dashboard analityczny** z filtrami target/model/spółka/sektor/okres,
+- `/models` — formalne porównanie modeli,
+- `/dashboard` — stan pipeline'u i diagnostyka techniczna,
 - `http://localhost:8000/docs` — dokumentacja REST API.
 
 ## Dla autora pracy
 
-Przed przekazaniem paczki prowadzącemu należy na komputerze z kompletną bazą wykonać **PREPARE_REVIEW_SNAPSHOT.bat**, a następnie **BUILD_FINAL_REVIEW_ZIP.bat**. To zamraża aktualny stan danych i wyników modeli. Dopiero wygenerowany plik `Financial_Prediction_v6_0_REVIEW_READY.zip` jest paczką przeznaczoną do oddania.
+Przed przekazaniem paczki prowadzącemu uruchom na komputerze z kompletną bazą:
 
-Nie przekazuj `.env` ani kluczy API. Snapshot REVIEW ma umożliwiać ocenę bez dostępu do prywatnych sekretów i bez zależności od bieżącej dostępności zewnętrznych serwisów.
+1. `PREPARE_REVIEW_SNAPSHOT.bat`
+2. `BUILD_FINAL_REVIEW_ZIP.bat`
 
+Finalny plik będzie nosił nazwę `Financial_Prediction_v6_1_INTERACTIVE_ANALYTICS_REVIEW_READY.zip`.
 
-## v6.0.2 BUILD hotfix
-Poprawiono BUILD_FINAL_REVIEW_ZIP.ps1: katalog projektu jest teraz wyznaczany jako $PSScriptRoot, dzięki czemu review/metadata/snapshot.json jest odczytywany z właściwego katalogu projektu.
+Nie przekazuj `.env` ani kluczy API. Snapshot ma umożliwiać ocenę bez dostępu do prywatnych sekretów i bez zależności od bieżącej dostępności źródeł zewnętrznych.
+
+## Nowości v6.1
+
+Interaktywny dashboard korzysta bezpośrednio z `ml.prediction`, `ml.training_run` i `ml.feature_importance`. Filtry są wykonywane przez FastAPI/PostgreSQL. Przy nowym treningu modeli ML zapisywana jest permutation importance, dzięki czemu ekran interpretowalności nie wymaga danych demonstracyjnych.
