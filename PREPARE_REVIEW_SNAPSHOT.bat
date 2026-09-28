@@ -1,10 +1,10 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title Przygotowanie snapshotu REVIEW v6.0.1
+title Przygotowanie snapshotu REVIEW v6.3.1
 
 echo ==========================================================
-echo   PREPARE REVIEW SNAPSHOT - v6.0.1 - tylko dla autora pracy
+echo   PREPARE REVIEW SNAPSHOT - v6.3.1 - tylko dla autora pracy
 echo ==========================================================
 echo.
 echo Skrypt eksportuje AKTUALNA baze i artefakty modeli.
@@ -61,7 +61,7 @@ docker compose cp api:/app/artifacts/. review\artifacts\ >nul 2>nul
 if errorlevel 1 echo [UWAGA] Nie udalo sie skopiowac wszystkich artefaktow; metryki i predykcje nadal sa w bazie.
 
 echo [3/4] Tworzenie metadanych snapshotu...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; try { $s=Invoke-RestMethod -Uri 'http://localhost:8000/api/v1/dashboard/summary'; $u='http://localhost:8000/api/v1/dashboard/models?latest=true'+[char]38+'target_code=NET_INCOME_CANONICAL'; $m=Invoke-RestMethod -Uri $u; $o=[ordered]@{prepared=$true; release='v6.0.1 REVIEW RELEASE'; created_at=(Get-Date).ToString('o'); companies=[int]$s.companies; market_rows=[int]$s.market_rows; fundamental_rows=[int]$s.fundamental_rows; macro_rows=[int]$s.macro_rows; model_runs=@($m).Count; dataset_version=if($s.dataset_version){$s.dataset_version.version_code}else{$null}; note='Snapshot utworzony z lokalnej, zweryfikowanej bazy autora.'}; $json=$o|ConvertTo-Json -Depth 6; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'review\metadata\snapshot.json'),$json,(New-Object System.Text.UTF8Encoding($false))); exit 0 } catch { Write-Error $_; exit 1 }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; try { $s=Invoke-RestMethod -Uri 'http://localhost:8000/api/v1/dashboard/summary'; $u='http://localhost:8000/api/v1/dashboard/models?latest=true'+[char]38+'target_code=NET_INCOME_CANONICAL'; $m=Invoke-RestMethod -Uri $u; $o=[ordered]@{prepared=$true; release='v6.3.1 FINAL REVIEW FIX'; created_at=(Get-Date).ToString('o'); companies=[int]$s.companies; market_rows=[int]$s.market_rows; fundamental_rows=[int]$s.fundamental_rows; macro_rows=[int]$s.macro_rows; model_runs=@($m).Count; dataset_version=if($s.dataset_version){$s.dataset_version.version_code}else{$null}; note='Snapshot utworzony z lokalnej, zweryfikowanej bazy autora.'}; $json=$o|ConvertTo-Json -Depth 6; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'review\metadata\snapshot.json'),$json,(New-Object System.Text.UTF8Encoding($false))); exit 0 } catch { Write-Error $_; exit 1 }"
 if errorlevel 1 (echo [BLAD] Nie zapisano metadata. Snapshot NIE jest gotowy.& pause & exit /b 6)
 
 powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $m=Get-Content -Raw 'review\metadata\snapshot.json'|ConvertFrom-Json; if(-not $m.prepared -or [int]$m.model_runs -lt 1){exit 1}else{exit 0}"

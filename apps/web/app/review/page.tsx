@@ -20,9 +20,9 @@ export default async function ReviewPage() {
   return (
     <main className="shell">
       <section className="hero">
-        <p className="eyebrow">v6.0 · REVIEW RELEASE</p>
+        <p className="eyebrow">v6.1 · INTERACTIVE ANALYTICS REVIEW</p>
         <h1>Wersja przygotowana do oceny pracy</h1>
-        <p className="lead">System działa na zamrożonym snapshotcie danych i zapisanych wynikach eksperymentów. Prowadzący może od razu przejść do danych, jakości, modeli i predykcji bez ponownego pobierania źródeł internetowych.</p>
+        <p className="lead">System działa na zamrożonym snapshotcie danych i zapisanych wynikach eksperymentów. Prowadzący może od razu przejść do jakości danych, konkretnych rekordów, interaktywnych analiz i ewaluacji modeli.</p>
       </section>
 
       <section className="grid">
@@ -37,15 +37,16 @@ export default async function ReviewPage() {
         <div className="review-links">
           <Link className="feature-link" href="/data"><span className="icon-box">01</span><div><strong>Przygotowanie i jakość danych</strong><p>Źródła, zakresy, kompletność, point-in-time oraz feature engineering.</p></div><span>→</span></Link>
           <Link className="feature-link" href="/data-browser"><span className="icon-box">02</span><div><strong>Podgląd rzeczywistych rekordów</strong><p>Filtrowanie i sortowanie danych rynkowych, fundamentalnych, makro oraz panelu modelowego.</p></div><span>→</span></Link>
-          <Link className="feature-link" href="/models"><span className="icon-box">03</span><div><strong>Porównanie modeli</strong><p>Wspólna próbka OOF, walk-forward i metryki modeli.</p></div><span>→</span></Link>
-          <Link className="feature-link" href="/dashboard"><span className="icon-box">04</span><div><strong>Dashboard analityczny</strong><p>Stan pipeline'u, jakość datasetu, treningi i diagnostyka.</p></div><span>→</span></Link>
+          <Link className="feature-link" href="/analytics"><span className="icon-box">03</span><div><strong>Interaktywne analizy</strong><p>Filtry target/model/spółka/sektor/okres, actual vs predicted, błędy i interpretowalność.</p></div><span>→</span></Link>
+          <Link className="feature-link" href="/models"><span className="icon-box">04</span><div><strong>Formalne porównanie modeli</strong><p>Wspólna próbka OOF, walk-forward i pełne metryki modeli.</p></div><span>→</span></Link>
+          <Link className="feature-link" href="/dashboard"><span className="icon-box">05</span><div><strong>Dashboard techniczny</strong><p>Stan pipeline'u, jakość datasetu, treningi i diagnostyka.</p></div><span>→</span></Link>
         </div>
       </section>
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">Reprodukowalność</p><h2>Metadane snapshotu</h2></div></div>
         <div className="code-panel">
-          <p><strong>Release:</strong> {review?.release ?? 'v6.0 REVIEW RELEASE'}</p>
+          <p><strong>Release:</strong> {review?.release ?? 'v6.1 INTERACTIVE ANALYTICS REVIEW'}</p>
           <p><strong>Utworzono:</strong> {snap.created_at ?? '—'}</p>
           <p><strong>Dataset:</strong> {snap.dataset_version ?? '—'}</p>
           <p><strong>Fakty finansowe:</strong> {snap.fundamental_rows ?? summary?.fundamental_rows ?? 0}</p>

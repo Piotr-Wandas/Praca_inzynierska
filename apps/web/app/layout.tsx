@@ -22,12 +22,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/companies">Spółki WIG20</Link>
               <Link href="/data">Jakość danych</Link>
               <Link href="/data-browser">Podgląd danych</Link>
+              <Link href="/analytics">Analizy</Link>
               <Link href="/models">Modele</Link>
               <Link href="/dashboard">Dashboard</Link>
             </nav>
           </header>
           {children}
-          <footer className="footer">Model predykcji wyników finansowych spółek giełdowych · v6.0 REVIEW RELEASE</footer>
+          <footer className="footer">Model predykcji wyników finansowych spółek giełdowych · v6.1 INTERACTIVE ANALYTICS REVIEW</footer>
         </div>
       </body>
     </html>

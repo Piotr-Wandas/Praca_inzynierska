@@ -8,6 +8,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from sqlalchemy import text
+from sklearn.inspection import permutation_importance
 
 from financial_platform.config.settings import get_settings
 from financial_platform.db.session import get_engine
@@ -273,9 +274,12 @@ def train_models_from_db(target: str = "net_income", min_common_eval_rows: int =
 
         for row in summary.to_dict("records"):
             name = row["model"]
+            permutation_rows: list[tuple[str, float]] = []
             if name in final_models:
                 model = final_models[name]
-                model.fit(known[final_numeric + final_categorical], known[spec.target_column])
+                x_final = known[final_numeric + final_categorical]
+                y_final = known[spec.target_column]
+                model.fit(x_final, y_final)
                 artifact = artifact_dir / f"{version_code}_{name}.joblib"
                 joblib.dump({
                     "model": model, "numeric": final_numeric, "categorical": final_categorical,
@@ -283,6 +287,18 @@ def train_models_from_db(target: str = "net_income", min_common_eval_rows: int =
                     "target_key": spec.key, "dataset_version": version_code,
                 }, artifact)
                 artifact_uri = str(artifact)
+                # Permutation importance działa na wejściowych kolumnach pipeline'u,
+                # dzięki czemu dashboard może pokazać znaczenie cech bez zależności
+                # od wewnętrznego kodowania OneHotEncoder.
+                if len(known) >= 12:
+                    try:
+                        pi = permutation_importance(
+                            model, x_final, y_final, n_repeats=8, random_state=42,
+                            scoring="neg_mean_absolute_error", n_jobs=-1,
+                        )
+                        permutation_rows = list(zip(final_numeric + final_categorical, pi.importances_mean.tolist()))
+                    except Exception:
+                        permutation_rows = []
             else:
                 artifact_uri = "baseline://no-artifact"
 
@@ -316,6 +332,17 @@ def train_models_from_db(target: str = "net_income", min_common_eval_rows: int =
                 },
             )
             run_ids[name] = run_id
+            for feature_name, importance_value in permutation_rows:
+                conn.execute(text("""
+                    INSERT INTO ml.feature_importance(
+                        training_run_id, feature_name, importance_type, importance_value, fold_no
+                    ) VALUES (:run_id, :feature_name, 'permutation_mae', :importance_value, NULL)
+                    ON CONFLICT (training_run_id, feature_name, importance_type, fold_no) DO UPDATE
+                    SET importance_value=EXCLUDED.importance_value
+                """), {
+                    "run_id": run_id, "feature_name": feature_name,
+                    "importance_value": float(importance_value),
+                })
 
         for pred in predictions:
             run_id = run_ids[pred["model_name"]]

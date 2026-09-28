@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from datetime import date
+import math
+from collections import defaultdict
 import json
 import os
 from pathlib import Path
@@ -13,7 +15,7 @@ from financial_platform.services.train_from_db import train_models_from_db
 from financial_platform.services.data_quality import get_data_quality_report
 from financial_platform.services.data_browser import get_browser_catalog, browse_data
 
-app = FastAPI(title="WIG20 Financial Prediction Platform", version="0.6.0")
+app = FastAPI(title="WIG20 Financial Prediction Platform", version="0.6.1")
 
 
 def _latest_dataset_id(conn, target_code: str | None = "NET_INCOME_CANONICAL"):
@@ -39,7 +41,7 @@ def health():
     try:
         with get_engine().connect() as conn:
             conn.execute(text("SELECT 1"))
-        return {"status": "ok", "database": "ok", "version": "v6.0", "stage": "review-release", "app_mode": os.getenv("APP_MODE", "development")}
+        return {"status": "ok", "database": "ok", "version": "v6.1", "stage": "interactive-analytics-review", "app_mode": os.getenv("APP_MODE", "development")}
     except Exception as exc:
         return {"status": "degraded", "database": "error", "detail": str(exc)}
 
@@ -54,7 +56,7 @@ def review_info():
     except Exception as exc:
         snapshot = {"prepared": False, "error": str(exc)}
     return {
-        "release": "v6.0 REVIEW RELEASE",
+        "release": "v6.1 INTERACTIVE ANALYTICS REVIEW",
         "mode": os.getenv("APP_MODE", "development"),
         "snapshot": snapshot,
         "urls": {
@@ -62,6 +64,7 @@ def review_info():
             "review": "http://localhost:3000/review",
             "data": "http://localhost:3000/data",
             "browser": "http://localhost:3000/data-browser",
+            "analytics": "http://localhost:3000/analytics",
             "models": "http://localhost:3000/models",
             "api_docs": "http://localhost:8000/docs"
         }
@@ -447,3 +450,189 @@ def trigger_training(
         return train_models_from_db(target=target, min_common_eval_rows=min_common_eval_rows)
     except Exception as exc:
         raise HTTPException(500, str(exc)) from exc
+
+
+# =============================
+# v6.1 INTERACTIVE ANALYTICS
+# =============================
+
+def _metric_bundle(rows: list[dict]) -> dict:
+    pairs = [(float(r["actual_value"]), float(r["predicted_value"])) for r in rows if r.get("actual_value") is not None and r.get("predicted_value") is not None]
+    if not pairs:
+        return {"observations": 0, "mae": None, "rmse": None, "smape": None, "wape": None, "r2": None}
+    actual = [a for a, _ in pairs]
+    pred = [p for _, p in pairs]
+    errors = [p - a for a, p in pairs]
+    abs_errors = [abs(e) for e in errors]
+    mae = sum(abs_errors) / len(abs_errors)
+    rmse = math.sqrt(sum(e * e for e in errors) / len(errors))
+    smape_parts = [200.0 * abs(p - a) / (abs(a) + abs(p)) for a, p in pairs if (abs(a) + abs(p)) > 0]
+    smape = sum(smape_parts) / len(smape_parts) if smape_parts else None
+    denom = sum(abs(a) for a in actual)
+    wape = (sum(abs_errors) / denom * 100.0) if denom else None
+    mean_actual = sum(actual) / len(actual)
+    ss_res = sum((a - p) ** 2 for a, p in pairs)
+    ss_tot = sum((a - mean_actual) ** 2 for a in actual)
+    r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else None
+    return {"observations": len(pairs), "mae": mae, "rmse": rmse, "smape": smape, "wape": wape, "r2": r2}
+
+
+@app.get("/api/v1/analytics/catalog")
+def analytics_catalog():
+    """Filtry dostępne dla interaktywnego dashboardu analitycznego."""
+    with get_engine().connect() as conn:
+        targets = conn.execute(text("""
+            SELECT DISTINCT target_code
+            FROM ml.training_run
+            WHERE status='completed'
+            ORDER BY target_code
+        """)).scalars().all()
+        model_rows = conn.execute(text("""
+            SELECT DISTINCT target_code, model_name
+            FROM ml.training_run
+            WHERE status='completed'
+            ORDER BY target_code, model_name
+        """)).mappings().all()
+        companies = conn.execute(text("""
+            SELECT DISTINCT c.ticker, c.name, COALESCE(s.name, '—') AS sector
+            FROM ml.prediction p
+            JOIN core.company c ON c.id=p.company_id
+            LEFT JOIN core.sector s ON s.id=c.sector_id
+            ORDER BY c.ticker
+        """)).mappings().all()
+        sectors = conn.execute(text("""
+            SELECT DISTINCT COALESCE(s.name, '—') AS sector
+            FROM ml.prediction p
+            JOIN core.company c ON c.id=p.company_id
+            LEFT JOIN core.sector s ON s.id=c.sector_id
+            ORDER BY sector
+        """)).scalars().all()
+        ranges = conn.execute(text("""
+            SELECT min(target_period_end) AS date_from, max(target_period_end) AS date_to
+            FROM ml.prediction
+            WHERE actual_value IS NOT NULL
+        """)).mappings().first()
+    return {
+        "targets": list(targets),
+        "models": [dict(r) for r in model_rows],
+        "companies": [dict(r) for r in companies],
+        "sectors": list(sectors),
+        "range": dict(ranges) if ranges else {},
+    }
+
+
+@app.get("/api/v1/analytics/overview")
+def analytics_overview(
+    target_code: str = Query("NET_INCOME_CANONICAL"),
+    model_name: str | None = Query(None),
+    ticker: str | None = Query(None),
+    sector: str | None = Query(None),
+    date_from: date | None = Query(None),
+    date_to: date | None = Query(None),
+):
+    """Interaktywna analiza predykcji, błędów, modeli i ważności cech."""
+    ticker = ticker.upper() if ticker else None
+    with get_engine().connect() as conn:
+        dataset_id = _latest_dataset_id(conn, target_code=target_code)
+        if not dataset_id:
+            return {"dataset_version": None, "selected_model": None, "summary": _metric_bundle([]), "series": [], "by_company": [], "by_period": [], "model_comparison": [], "feature_importance": [], "observations": []}
+
+        dataset_version = conn.execute(text("SELECT version_code FROM ml.dataset_version WHERE id=:id"), {"id": dataset_id}).scalar()
+        if model_name:
+            run = conn.execute(text("""
+                SELECT id, model_name, metrics, created_at
+                FROM ml.training_run
+                WHERE dataset_version_id=:dataset_id AND target_code=:target_code
+                  AND status='completed' AND model_name=:model_name
+                ORDER BY created_at DESC, id DESC LIMIT 1
+            """), {"dataset_id": dataset_id, "target_code": target_code, "model_name": model_name}).mappings().first()
+        else:
+            run = conn.execute(text("""
+                SELECT id, model_name, metrics, created_at
+                FROM ml.training_run
+                WHERE dataset_version_id=:dataset_id AND target_code=:target_code
+                  AND status='completed'
+                ORDER BY NULLIF(metrics->>'mae','')::double precision ASC NULLS LAST, id ASC
+                LIMIT 1
+            """), {"dataset_id": dataset_id, "target_code": target_code}).mappings().first()
+        if not run:
+            return {"dataset_version": dataset_version, "selected_model": None, "summary": _metric_bundle([]), "series": [], "by_company": [], "by_period": [], "model_comparison": [], "feature_importance": [], "observations": []}
+
+        where = ["p.dataset_version_id=:dataset_id", "p.target_code=:target_code", "p.training_run_id=:run_id", "p.actual_value IS NOT NULL"]
+        params: dict = {"dataset_id": dataset_id, "target_code": target_code, "run_id": run["id"]}
+        if ticker:
+            where.append("c.ticker=:ticker")
+            params["ticker"] = ticker
+        if sector:
+            where.append("COALESCE(s.name,'—')=:sector")
+            params["sector"] = sector
+        if date_from:
+            where.append("p.target_period_end>=:date_from")
+            params["date_from"] = date_from
+        if date_to:
+            where.append("p.target_period_end<=:date_to")
+            params["date_to"] = date_to
+
+        query = """
+            SELECT p.id, c.ticker, c.name AS company_name, COALESCE(s.name,'—') AS sector,
+                   p.target_period_end, p.cutoff_at,
+                   p.predicted_value::double precision AS predicted_value,
+                   p.actual_value::double precision AS actual_value,
+                   p.absolute_error::double precision AS absolute_error
+            FROM ml.prediction p
+            JOIN core.company c ON c.id=p.company_id
+            LEFT JOIN core.sector s ON s.id=c.sector_id
+            WHERE """ + " AND ".join(where) + " ORDER BY p.target_period_end, c.ticker"
+        rows = [dict(r) for r in conn.execute(text(query), params).mappings().all()]
+
+        comparison = conn.execute(text("""
+            SELECT model_name, metrics
+            FROM ml.training_run
+            WHERE dataset_version_id=:dataset_id AND target_code=:target_code AND status='completed'
+            ORDER BY NULLIF(metrics->>'mae','')::double precision ASC NULLS LAST, model_name
+        """), {"dataset_id": dataset_id, "target_code": target_code}).mappings().all()
+
+        importance = conn.execute(text("""
+            SELECT feature_name, importance_type, avg(importance_value)::double precision AS importance_value
+            FROM ml.feature_importance
+            WHERE training_run_id=:run_id
+            GROUP BY feature_name, importance_type
+            ORDER BY abs(avg(importance_value)) DESC
+            LIMIT 20
+        """), {"run_id": run["id"]}).mappings().all()
+
+    by_company_map: dict[str, list[dict]] = defaultdict(list)
+    by_period_map: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_company_map[r["ticker"]].append(r)
+        by_period_map[str(r["target_period_end"])].append(r)
+
+    by_company = []
+    for key, group in by_company_map.items():
+        m = _metric_bundle(group)
+        by_company.append({"ticker": key, **m})
+    by_company.sort(key=lambda x: (x["mae"] is None, x["mae"] or 0), reverse=True)
+
+    by_period = []
+    series = []
+    for key in sorted(by_period_map):
+        group = by_period_map[key]
+        m = _metric_bundle(group)
+        actual_sum = sum(float(r["actual_value"]) for r in group if r.get("actual_value") is not None)
+        predicted_sum = sum(float(r["predicted_value"]) for r in group if r.get("predicted_value") is not None)
+        by_period.append({"period": key, **m})
+        series.append({"period": key, "actual": actual_sum, "predicted": predicted_sum, "observations": m["observations"]})
+
+    return {
+        "dataset_version": dataset_version,
+        "target_code": target_code,
+        "selected_model": dict(run),
+        "filters": {"ticker": ticker, "sector": sector, "date_from": date_from, "date_to": date_to},
+        "summary": {**_metric_bundle(rows), "companies": len(by_company_map), "periods": len(by_period_map)},
+        "series": series,
+        "by_company": by_company,
+        "by_period": by_period,
+        "model_comparison": [dict(r) for r in comparison],
+        "feature_importance": [dict(r) for r in importance],
+        "observations": rows[-250:],
+    }
